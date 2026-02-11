@@ -2,6 +2,8 @@
 
 import { useGameStore } from '@/stores/game-state';
 import { useState } from 'react';
+import { getWorldInstance } from '@/ecs/world-instance';
+import { createBot } from '@/ecs/entities/bot';
 
 export function HUD() {
   const resources = useGameStore((s) => s.resources);
@@ -10,7 +12,12 @@ export function HUD() {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
 
   const handleAddBot = () => {
-    addBot({ type: 'miner', status: 'idle' });
+    const world = getWorldInstance();
+    if (world) {
+      createBot(world, { type: 'miner', position: { x: 0, y: 0.5, z: 0 } });
+    } else {
+      addBot({ type: 'miner', status: 'idle' });
+    }
   };
 
   const handleSelectBot = (botId: string) => {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useGameStore } from '@/stores/game-state';
+import { getWorldInstance } from '@/ecs/world-instance';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -15,6 +16,24 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   if (!isOpen) return null;
 
   const handleReset = () => {
+    // Clear ECS world before resetting Zustand to prevent stale entities from repopulating
+    const world = getWorldInstance();
+    if (world) {
+      // Remove all entities
+      const entities = [...world.entities];
+      for (const entity of entities) {
+        world.remove(entity);
+      }
+      // Release all claimed resources
+      if (world.resourceRegistry) {
+        for (const node of world.resourceRegistry.values()) {
+          node.available = true;
+        }
+      }
+      // Reset entity counter
+      world.nextEntityId = 1;
+    }
+
     resetGame();
     window.location.reload();
   };

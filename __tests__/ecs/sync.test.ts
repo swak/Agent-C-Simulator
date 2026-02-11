@@ -56,6 +56,42 @@ describe('ECS-to-Zustand Sync System', () => {
       expect(storeBots.length).toBe(1)
       expect(storeBots[0].status).toBe('idle')
     })
+
+    it('should map "moving" + return task to "returning" status', () => {
+      // Given: Bot moving with a return task
+      const bot = createBot(world, {
+        type: 'miner',
+        position: { x: 5, y: 0, z: 5 },
+      })
+      bot.aiState = { current: 'moving' }
+      bot.task = { type: 'return', active: true, progress: 0 }
+
+      // When: Sync ECS to Zustand
+      syncECSToZustand(world)
+
+      // Then: Bot status should be "returning"
+      const storeBots = useGameStore.getState().bots
+      expect(storeBots.length).toBe(1)
+      expect(storeBots[0].status).toBe('returning')
+    })
+
+    it('should map "moving" + gather task to "moving" status', () => {
+      // Given: Bot moving with a gather task
+      const bot = createBot(world, {
+        type: 'miner',
+        position: { x: 5, y: 0, z: 5 },
+      })
+      bot.aiState = { current: 'moving' }
+      bot.task = { type: 'gather', active: true, progress: 0, resourceType: 'wood' }
+
+      // When: Sync ECS to Zustand
+      syncECSToZustand(world)
+
+      // Then: Bot status should remain "moving"
+      const storeBots = useGameStore.getState().bots
+      expect(storeBots.length).toBe(1)
+      expect(storeBots[0].status).toBe('moving')
+    })
   })
 
   describe('Bot creation in store', () => {
@@ -77,7 +113,7 @@ describe('ECS-to-Zustand Sync System', () => {
       expect(storeBots[0].position).toEqual({ x: 5, y: 0, z: 10 })
     })
 
-    it('should handle bot without position by using fallback', () => {
+    it('should handle bot without position by using default', () => {
       // Given: Bot entity without position component
       const bot = createBot(world, {
         type: 'miner',

@@ -303,6 +303,25 @@ describe('Game Loop Integration (WS-02-US-03)', () => {
       const zustandBots = useGameStore.getState().bots
       expect(zustandBots.length).toBe(5)
     })
+
+    it('should sync returning bot status (moving + return task)', () => {
+      // Given: ECS bot moving back to base with return task
+      const bot = createBot(world, {
+        type: 'miner',
+        position: { x: -5, y: 0, z: -5 },
+      })
+      bot.aiState = { current: 'moving' }
+      bot.task = { type: 'return', active: true, progress: 0, target: { x: 0, y: 0, z: 0 } }
+
+      useGameStore.setState({ bots: [] })
+
+      // When: Syncing
+      syncECSToZustand(world)
+
+      // Then: Zustand status should be 'returning'
+      const zustandBot = useGameStore.getState().bots[0]
+      expect(zustandBot.status).toBe('returning')
+    })
   })
 
   describe('Frame Rate Performance', () => {

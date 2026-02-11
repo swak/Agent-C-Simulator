@@ -1,11 +1,9 @@
 /**
  * ECS-to-Zustand Sync System
  *
- * Synchronizes ECS bot state to Zustand store for UI rendering:
- * - Position updates
- * - Energy levels
- * - AI state to status mapping
- * - Task information
+ * Synchronizes ECS bot state to Zustand store for UI rendering.
+ * ECS is the single source of truth — sync REPLACES the Zustand bots array
+ * entirely from ECS entities each frame (no merge with stale Zustand data).
  */
 
 import { GameWorld } from '@/ecs/world'
@@ -13,14 +11,15 @@ import { BotEntity } from '@/ecs/entities/bot'
 import { useGameStore, Bot } from '@/stores/game-state'
 
 /**
- * Map ECS AI state to Zustand status
+ * Map ECS AI state + task to Zustand status.
+ * 'moving' with a 'return' task maps to 'returning'.
  */
-function mapAIStateToStatus(aiState: string): Bot['status'] {
+function mapAIStateToStatus(aiState: string, taskType?: string): Bot['status'] {
   switch (aiState) {
     case 'idle':
       return 'idle'
     case 'moving':
-      return 'moving'
+      return taskType === 'return' ? 'returning' : 'moving'
     case 'gathering':
       return 'working'
     case 'blocked':
@@ -31,38 +30,28 @@ function mapAIStateToStatus(aiState: string): Bot['status'] {
 }
 
 /**
- * Sync all ECS bot entities to Zustand store
+ * Sync all ECS bot entities to Zustand store.
+ * Builds the bots array purely from ECS entities (replace, not merge).
  */
 export function syncECSToZustand(world: GameWorld): void {
-  const store = useGameStore.getState()
-  const currentBots = store.bots
-  const botMap = new Map(currentBots.map((b) => [b.id, b]))
+  const bots: Bot[] = []
 
-  // Iterate through all ECS entities
   for (const entity of world.entities) {
     const bot = entity as BotEntity
 
-    // Skip if not a bot or missing essential components
+    // Skip non-bot entities
     if (!bot.id || !bot.botType) continue
 
-    const botId = `bot-${bot.id}`
-    const existingBot = botMap.get(botId)
-
-    // Create Zustand bot data
-    const zustandBot: Bot = {
-      id: botId,
+    bots.push({
+      id: `bot-${bot.id}`,
       type: bot.botType,
       position: bot.position
-        ? {
-            x: bot.position.x,
-            y: bot.position.y,
-            z: bot.position.z,
-          }
-        : existingBot?.position || { x: 0, y: 0, z: 0 },
+        ? { x: bot.position.x, y: bot.position.y, z: bot.position.z }
+        : { x: 0, y: 0, z: 0 },
       status: bot.aiState
-        ? mapAIStateToStatus(bot.aiState.current)
-        : existingBot?.status || 'idle',
-      energy: bot.energy?.current ?? existingBot?.energy ?? 100,
+        ? mapAIStateToStatus(bot.aiState.current, bot.task?.type)
+        : 'idle',
+      energy: bot.energy?.current ?? 100,
       currentTask: bot.task
         ? {
             type: bot.task.type,
@@ -70,19 +59,8 @@ export function syncECSToZustand(world: GameWorld): void {
             progress: bot.task.progress,
           }
         : undefined,
-    }
-
-    if (existingBot) {
-      // Update existing bot
-      botMap.set(botId, zustandBot)
-    } else {
-      // Add new bot
-      botMap.set(botId, zustandBot)
-    }
+    })
   }
 
-  // Update store with synced bots
-  useGameStore.setState({
-    bots: Array.from(botMap.values()),
-  })
+  useGameStore.setState({ bots })
 }

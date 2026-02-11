@@ -12,6 +12,7 @@ import { useGameStore } from '@/stores/game-state';
 import { createWorld, GameWorld } from '@/ecs/world';
 import { createBot } from '@/ecs/entities/bot';
 import { registerResourceNode } from '@/ecs/systems/resources';
+import { setWorldInstance, clearWorldInstance } from '@/ecs/world-instance';
 
 const RESOURCE_NODES: { id: string; type: 'wood' | 'stone' | 'iron'; position: [number, number, number] }[] = [
   { id: 'wood-1', type: 'wood', position: [-10, 0, -10] },
@@ -68,20 +69,28 @@ function useECSWorld(): GameWorld {
     }
   }
 
-  // Bootstrap ECS entities from Zustand bots (one-time)
+  // Publish world instance and bootstrap ECS entities from Zustand bots (one-time)
   useEffect(() => {
-    if (bootstrappedRef.current || !worldRef.current) return;
-    bootstrappedRef.current = true;
+    if (!worldRef.current) return;
+    setWorldInstance(worldRef.current);
 
-    const bots = useGameStore.getState().bots;
-    for (const bot of bots) {
-      createBot(worldRef.current, {
-        type: bot.type,
-        position: bot.position
-          ? { x: bot.position.x, y: bot.position.y, z: bot.position.z }
-          : undefined,
-      });
+    if (!bootstrappedRef.current) {
+      bootstrappedRef.current = true;
+
+      const bots = useGameStore.getState().bots;
+      for (const bot of bots) {
+        createBot(worldRef.current, {
+          type: bot.type,
+          position: bot.position
+            ? { x: bot.position.x, y: bot.position.y, z: bot.position.z }
+            : undefined,
+        });
+      }
     }
+
+    return () => {
+      clearWorldInstance();
+    };
   }, []);
 
   return worldRef.current;
