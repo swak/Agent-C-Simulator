@@ -10,6 +10,27 @@ interface BotProps {
   bot: BotType;
 }
 
+const TYPE_SCALE: Record<BotType['type'], number> = {
+  miner: 1.0,
+  hauler: 1.2,
+  crafter: 1.0,
+  scout: 1.0,
+};
+
+const TYPE_CAPSULE: Record<BotType['type'], [number, number]> = {
+  miner: [0.3, 0.6],
+  hauler: [0.3, 0.6],
+  crafter: [0.4, 0.4],
+  scout: [0.25, 0.7],
+};
+
+const TRAIL_COLORS: Record<BotType['type'], string> = {
+  miner: '#4A90E2',
+  hauler: '#E2944A',
+  crafter: '#4AE29A',
+  scout: '#22C55E',
+};
+
 const BOT_COLORS: Record<BotType['type'], string> = {
   miner: '#4A90E2',
   hauler: '#E2944A',
@@ -21,6 +42,13 @@ export function Bot({ bot }: BotProps) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   const color = BOT_COLORS[bot.type];
+  const trailColor = TRAIL_COLORS[bot.type];
+  const scale = TYPE_SCALE[bot.type];
+  const [capsuleRadius, capsuleHeight] = TYPE_CAPSULE[bot.type];
+  const upgradeCount = bot.upgrades?.length ?? 0;
+  const hasUpgrades = upgradeCount > 0;
+  const typeInitial = bot.type[0].toUpperCase();
+
   const position = useMemo(
     () => new THREE.Vector3(bot.position?.x || 0, bot.position?.y || 0.5, bot.position?.z || 0),
     [bot.position?.x, bot.position?.y, bot.position?.z]
@@ -41,24 +69,39 @@ export function Bot({ bot }: BotProps) {
   return (
     <group
       position={[position.x, position.y, position.z]}
+      scale={[scale, scale, scale]}
       userData={{
         testId: 'bot-entity',
         status: bot.status,
         inventoryFull: bot.currentTask?.progress === 100,
-        hasUpgrades: false,
+        hasUpgrades,
       }}
     >
+      {/* Gold upgrade ring at base */}
+      {hasUpgrades && (
+        <mesh position={[0, -0.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.45, 0.06, 8, 24]} />
+          <meshStandardMaterial
+            color="#FFD700"
+            emissive="#FFD700"
+            emissiveIntensity={0.4}
+            metalness={0.8}
+            roughness={0.2}
+          />
+        </mesh>
+      )}
+
       {/* Float replaces manual bobbing */}
       <Float speed={2} rotationIntensity={0} floatIntensity={0.5} enabled={bot.status === 'idle'}>
         {/* Trail for movement effect */}
         <Trail
           width={0.5}
           length={4}
-          color={color}
+          color={trailColor}
           attenuation={(t) => t * t}
         >
           <mesh ref={meshRef} castShadow>
-            <capsuleGeometry args={[0.3, 0.6, 8, 16]} />
+            <capsuleGeometry args={[capsuleRadius, capsuleHeight, 8, 16]} />
             <meshStandardMaterial
               color={color}
               roughness={0.5}
@@ -68,7 +111,7 @@ export function Bot({ bot }: BotProps) {
             />
           </mesh>
 
-          {/* Energy indicator */}
+          {/* Energy indicator with type initial */}
           <mesh position={[0, 0.8, 0]} castShadow>
             <sphereGeometry args={[0.1, 8, 8]} />
             <meshStandardMaterial
@@ -126,11 +169,16 @@ export function Bot({ bot }: BotProps) {
           }}
         >
           <div style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
-            {bot.status}
+            [{typeInitial}] {bot.status}
           </div>
           <div style={{ fontSize: '9px', marginTop: '2px' }}>
             Energy: {energy}%
           </div>
+          {hasUpgrades && (
+            <div style={{ fontSize: '9px', color: '#FFD700' }}>
+              Upgrades: {upgradeCount}/3
+            </div>
+          )}
           {bot.currentTask && bot.currentTask.progress !== undefined && (
             <div
               style={{

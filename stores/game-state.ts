@@ -18,6 +18,7 @@ export interface Bot {
   position?: { x: number; y: number; z: number };
   status: 'idle' | 'working' | 'moving' | 'returning' | 'blocked' | 'recharging';
   energy: number;
+  upgrades?: Array<{ type: string; appliedAt: number }>;
   currentTask?: {
     type: 'gather' | 'craft' | 'build' | 'return';
     resourceType?: string;
@@ -96,6 +97,8 @@ interface GameState {
 
   unlockTechNode: (nodeId: string) => boolean;
   getUnlockedNodeCount: () => number;
+
+  removeInventoryItem: (itemId: string) => void;
 
   canCraftRecipe: (recipeId: string) => boolean;
   craftItem: (recipeId: string) => string | null;
@@ -331,6 +334,12 @@ export const useGameStore = create<GameState>()(
 
       getUnlockedNodeCount: () => {
         return get().techTree.nodes.filter((n) => n.unlocked).length;
+      },
+
+      removeInventoryItem: (itemId) => {
+        set((state) => ({
+          inventory: state.inventory.filter((item) => item.id !== itemId),
+        }));
       },
 
       // Crafting actions

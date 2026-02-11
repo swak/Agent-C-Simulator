@@ -10,7 +10,7 @@
  */
 
 import { BotEntity } from '@/ecs/entities/bot'
-import { GameWorld } from '@/ecs/world'
+import { GameWorld, BotType } from '@/ecs/world'
 import { findNearestResource, claimResourceNode, releaseResourceNode } from './resources'
 import { calculatePath } from './pathfinding'
 import { canDeposit } from './deposit'
@@ -18,6 +18,13 @@ import { distance3D } from '@/utils/math'
 import { BASE_POSITION, BASE_RADIUS, ENERGY_FULL_THRESHOLD } from '@/utils/constants'
 const ARRIVAL_THRESHOLD = 1.0
 const ENERGY_RESUME_THRESHOLD = 20
+
+export const RESOURCE_PREFERENCES: Record<BotType, string[]> = {
+  miner: ['iron', 'stone', 'wood', 'crystals'],
+  hauler: ['wood', 'stone', 'iron', 'crystals'],
+  scout: ['crystals', 'iron', 'stone', 'wood'],
+  crafter: ['stone', 'wood', 'iron', 'crystals'],
+}
 
 /**
  * Update bot AI decision making
@@ -165,9 +172,9 @@ function handleIdleState(bot: BotEntity, world: GameWorld): void {
     return
   }
 
-  // Select nearest resource
-  // Try wood first, then stone, then iron, then crystals
-  const resourceTypes = ['wood', 'stone', 'iron', 'crystals']
+  // Select nearest resource based on bot type preference
+  const botType = bot.botType || 'miner'
+  const resourceTypes = RESOURCE_PREFERENCES[botType]
   let selectedResource = null
 
   for (const resourceType of resourceTypes) {

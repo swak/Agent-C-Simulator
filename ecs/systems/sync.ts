@@ -71,6 +71,7 @@ export function syncECSToZustand(world: GameWorld): void {
           )
         : 'idle',
       energy: Math.round(bot.energy?.current ?? 100),
+      upgrades: bot.upgrades?.applied,
       currentTask: bot.task
         ? {
             type: bot.task.type,

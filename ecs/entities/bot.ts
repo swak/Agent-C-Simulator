@@ -24,8 +24,10 @@ import {
   Appearance,
   Particles,
   Path,
+  Upgrades,
   getNextEntityId,
 } from '@/ecs/world';
+import { UPGRADE_EFFECTS, MAX_UPGRADES_PER_BOT } from '@/utils/constants';
 
 export interface BotConfig {
   type: BotType;
@@ -82,6 +84,7 @@ export function createBot(world: GameWorld, config: BotConfig): BotEntity | null
       accessories: [],
     },
     particles: { enabled: true },
+    upgrades: { applied: [] },
   };
 
   const entity = world.add(entityData);
@@ -165,6 +168,28 @@ export function customizeBot(
   });
 }
 
+export function applyUpgrade(bot: BotEntity, upgradeType: string): boolean {
+  const upgrades = bot.get('upgrades') || { applied: [] };
+  if (upgrades.applied.length >= MAX_UPGRADES_PER_BOT) return false;
+
+  const effect = UPGRADE_EFFECTS[upgradeType];
+  if (!effect) return false;
+
+  const stats = bot.get('stats');
+  if (!stats) return false;
+
+  const newStats: Stats = { ...stats };
+  if (effect.speed) newStats.speed += effect.speed;
+  if (effect.capacity) newStats.capacity += effect.capacity;
+  bot.set('stats', newStats);
+
+  bot.set('upgrades', {
+    applied: [...upgrades.applied, { type: upgradeType, appliedAt: Date.now() }],
+  });
+
+  return true;
+}
+
 export function serializeBot(bot: BotEntity): Record<string, unknown> {
   return {
     botType: bot.get('botType'),
@@ -175,6 +200,7 @@ export function serializeBot(bot: BotEntity): Record<string, unknown> {
     stats: bot.get('stats'),
     inventory: bot.get('inventory'),
     appearance: bot.get('appearance'),
+    upgrades: bot.get('upgrades'),
   };
 }
 
@@ -192,8 +218,10 @@ export function deserializeBot(
   if (data.energy) bot.set('energy', data.energy as Energy);
   if (data.task) bot.set('task', data.task as Task);
   if (data.aiState) bot.set('aiState', data.aiState as AIState);
+  if (data.stats) bot.set('stats', data.stats as Stats);
   if (data.inventory) bot.set('inventory', data.inventory as Inventory);
   if (data.appearance) bot.set('appearance', data.appearance as Appearance);
+  if (data.upgrades) bot.set('upgrades', data.upgrades as Upgrades);
 
   return bot;
 }

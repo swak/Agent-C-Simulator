@@ -74,6 +74,10 @@ export interface Particles {
   enabled: boolean;
 }
 
+export interface Upgrades {
+  applied: Array<{ type: string; appliedAt: number }>;
+}
+
 export type BotType = 'miner' | 'hauler' | 'crafter' | 'scout';
 
 export type EntityComponents = {
@@ -89,6 +93,7 @@ export type EntityComponents = {
   inventory?: Inventory;
   appearance?: Appearance;
   particles?: Particles;
+  upgrades?: Upgrades;
 };
 
 export interface ResourceNode {
