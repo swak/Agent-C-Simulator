@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useGameStore } from '@/stores/game-state';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -9,8 +10,14 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [reducedMotion, setReducedMotion] = useState(false);
+  const resetGame = useGameStore((state) => state.resetGame);
 
   if (!isOpen) return null;
+
+  const handleReset = () => {
+    resetGame();
+    window.location.reload();
+  };
 
   return (
     <div
@@ -44,6 +51,18 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               className="w-12 h-6 bg-gray-700 rounded-full relative appearance-none cursor-pointer checked:bg-blue-600"
             />
           </label>
+
+          {/* Reset game */}
+          <div className="pt-2">
+            <button
+              data-testid="reset-game-button"
+              onClick={handleReset}
+              className="w-full py-2 px-4 bg-red-700 hover:bg-red-600 rounded text-sm font-medium transition-colors"
+            >
+              Reset Game
+            </button>
+            <p className="text-xs text-gray-500 mt-1">Clears save data and restarts</p>
+          </div>
         </div>
 
         {/* Branding footer */}

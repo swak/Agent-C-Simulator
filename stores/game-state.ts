@@ -106,6 +106,8 @@ interface GameState {
   enableAutoSave: (intervalMs: number) => void;
   disableAutoSave: () => void;
 
+  resetGame: () => void;
+
   calculateOfflineProgress: () => Record<string, number>;
   getOfflineTime: () => number;
 }
@@ -457,6 +459,24 @@ export const useGameStore = create<GameState>()(
           clearInterval(autoSaveInterval);
           autoSaveInterval = null;
         }
+      },
+
+      resetGame: () => {
+        if (autoSaveInterval) {
+          clearInterval(autoSaveInterval);
+          autoSaveInterval = null;
+        }
+        localStorage.removeItem('agent-c-save');
+        set({
+          resources: { wood: 0, stone: 0, iron: 0, crystals: 0 },
+          bots: [],
+          selectedBotId: null,
+          techTree: { nodes: initialTechTree },
+          inventory: [],
+          craftingQueue: [],
+          productionRates: {},
+          timestamp: Date.now(),
+        });
       },
 
       // Offline progress

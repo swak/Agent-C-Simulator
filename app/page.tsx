@@ -9,19 +9,13 @@ import { GameUI } from '@/components/ui/GameUI';
 const GameScene = dynamic(() => import('@/components/3d/Scene'), { ssr: false });
 
 export default function Home() {
-  const loadGame = useGameStore((state) => state.loadGame);
   const addBot = useGameStore((state) => state.addBot);
-  const bots = useGameStore((state) => state.bots);
 
   useEffect(() => {
-    // Initialize game state on mount
-    const hasLoadedSave = loadGame();
-
-    if (!hasLoadedSave) {
-      // New game - add a starter bot
-      if (bots.length === 0) {
-        addBot({ type: 'miner', position: { x: 0, y: 0.5, z: 0 }, status: 'idle' });
-      }
+    // Ensure a starter bot exists (persist middleware auto-loads saved state)
+    const currentBots = useGameStore.getState().bots;
+    if (currentBots.length === 0) {
+      addBot({ type: 'miner', position: { x: 0, y: 0.5, z: 0 }, status: 'idle' });
     }
 
     // Expose debug API for e2e tests
@@ -56,7 +50,7 @@ export default function Home() {
         },
       };
     }
-  }, [loadGame, addBot, bots.length]);
+  }, [addBot]);
 
   return (
     <main className="w-full h-screen relative">
