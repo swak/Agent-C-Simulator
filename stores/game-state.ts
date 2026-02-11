@@ -23,7 +23,7 @@ export interface Bot {
   capacity?: number;
   upgrades?: Array<{ type: string; appliedAt: number }>;
   currentTask?: {
-    type: 'gather' | 'craft' | 'build' | 'return';
+    type: 'gather' | 'craft' | 'build' | 'return' | 'pickup';
     resourceType?: string;
     targetNodeId?: string;
     progress?: number;

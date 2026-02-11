@@ -36,6 +36,8 @@ function mapAIStateToStatus(
       return taskType === 'return' ? 'returning' : 'moving'
     case 'gathering':
       return 'working'
+    case 'crafting':
+      return 'working'
     case 'blocked':
       return 'blocked'
     default:

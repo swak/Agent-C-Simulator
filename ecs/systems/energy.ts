@@ -11,6 +11,7 @@ const ENERGY_DRAIN_RATE: Record<string, number> = {
   idle: -0.5, // Slow recharge
   moving: 1.0, // Medium drain
   gathering: 2.5, // High drain
+  crafting: 1.5, // Moderate drain
   blocked: 0.0, // No drain when blocked
 };
 

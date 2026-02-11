@@ -30,17 +30,18 @@ export interface Energy {
 }
 
 export interface Task {
-  type: 'gather' | 'craft' | 'build' | 'return';
+  type: 'gather' | 'craft' | 'build' | 'return' | 'pickup';
   active: boolean;
   progress: number;
   target?: Position;
   resourceType?: string;
   duration?: number;
   targetNodeId?: string;
+  targetBotId?: number;
 }
 
 export interface AIState {
-  current: 'idle' | 'moving' | 'gathering' | 'blocked';
+  current: 'idle' | 'moving' | 'gathering' | 'blocked' | 'crafting';
 }
 
 export interface Stats {
