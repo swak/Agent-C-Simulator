@@ -1,11 +1,6 @@
 'use client';
 
-import { extend } from '@react-three/fiber';
 import { RigidBody } from '@react-three/rapier';
-import * as THREE from 'three';
-
-// Extend R3F with Three.js primitives
-extend(THREE);
 
 export function Terrain() {
   return (

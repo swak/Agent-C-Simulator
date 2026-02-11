@@ -1,13 +1,10 @@
 'use client';
 
 import { useRef, useMemo } from 'react';
-import { useFrame, extend } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { RigidBody, RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import { Bot as BotType } from '@/stores/game-state';
-
-// Extend R3F with Three.js primitives
-extend(THREE);
 
 interface BotProps {
   bot: BotType;

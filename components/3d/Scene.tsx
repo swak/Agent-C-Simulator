@@ -1,17 +1,13 @@
 'use client';
 
-import { Canvas, extend } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { Suspense } from 'react';
-import * as THREE from 'three';
 import { Terrain } from './Terrain';
 import { Bot } from './Bot';
 import { Resource } from './Resource';
 import { Camera } from './Camera';
 import { useGameStore } from '@/stores/game-state';
-
-// Extend R3F with Three.js primitives
-extend(THREE);
 
 export default function Scene() {
   const bots = useGameStore((state) => state.bots);

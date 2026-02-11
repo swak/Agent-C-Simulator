@@ -1,11 +1,8 @@
 'use client';
 
 import { useRef } from 'react';
-import { useFrame, extend } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-
-// Extend R3F with Three.js primitives
-extend(THREE);
 
 interface ResourceProps {
   type: 'wood' | 'stone' | 'iron';
