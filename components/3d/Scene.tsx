@@ -9,6 +9,28 @@ import { Resource } from './Resource';
 import { Camera } from './Camera';
 import { useGameStore } from '@/stores/game-state';
 
+function LoadingScreen() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+      <div className="text-center space-y-6">
+        <h1 className="text-5xl font-bold font-mono text-cyan-400 tracking-wider">
+          AGENT-C SIMULATOR
+        </h1>
+        <p className="text-lg text-gray-400">Designed by bots. Built by bots.</p>
+        <p className="text-sm text-gray-500">
+          Powered by <span className="text-cyan-500">miniature-guacamole</span>
+        </p>
+        <div className="flex justify-center gap-2 mt-8">
+          <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+          <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+        </div>
+        <p className="text-xs text-gray-600 font-mono mt-4">INITIALIZING SYSTEMS...</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Scene() {
   const bots = useGameStore((state) => state.bots);
 
@@ -18,7 +40,7 @@ export default function Scene() {
       camera={{ position: [20, 20, 20], fov: 50 }}
       style={{ background: 'linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%)' }}
     >
-      <Suspense fallback={null}>
+      <Suspense fallback={<LoadingScreen />}>
         <ambientLight intensity={0.6} />
         <directionalLight
           position={[10, 20, 5]}

@@ -51,7 +51,7 @@ export function HUD() {
       <div className="absolute top-4 right-4 pointer-events-auto">
         <div
           data-testid="bot-roster"
-          className="bg-gray-900/80 backdrop-blur-sm rounded-lg p-3 text-white shadow-lg w-64"
+          className="bg-gray-900/80 backdrop-blur-sm rounded-lg p-2 md:p-3 text-white shadow-lg w-48 md:w-64"
           role="navigation"
           aria-label="Bot roster"
         >
@@ -96,7 +96,7 @@ export function HUD() {
       </div>
 
       {/* Keyboard shortcuts hint - bottom-center */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto hidden md:block">
         <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg px-4 py-2 text-white shadow-lg">
           <div className="flex gap-4 text-xs">
             <span>
@@ -113,6 +113,11 @@ export function HUD() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Watermark - desktop only */}
+      <div className="absolute bottom-2 left-2 text-[10px] text-white/20 hidden md:block pointer-events-none">
+        designed by bots // miniature-guacamole
       </div>
 
       {/* Hidden button for testing */}

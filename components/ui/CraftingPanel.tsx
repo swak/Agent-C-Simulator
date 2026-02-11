@@ -113,7 +113,7 @@ export function CraftingPanel({ isOpen, onClose }: CraftingPanelProps) {
     <>
       <div
         data-testid="crafting-panel"
-        className="fixed inset-y-0 left-0 w-96 bg-gray-900/95 backdrop-blur-md text-white shadow-2xl z-40 overflow-y-auto"
+        className="fixed inset-y-0 left-0 w-full md:w-96 bg-gray-900/95 backdrop-blur-md text-white shadow-2xl z-40 overflow-y-auto"
         role="dialog"
         aria-label="Crafting panel"
       >

@@ -17,7 +17,7 @@ export function BotCustomizer({ botId, isOpen, onClose }: BotCustomizerProps) {
   return (
     <div
       data-testid="bot-detail-panel"
-      className="fixed right-4 top-1/2 transform -translate-y-1/2 w-80 bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl text-white z-40 p-6"
+      className="fixed bottom-0 left-0 right-0 w-full rounded-t-2xl md:bottom-auto md:left-auto md:right-4 md:top-1/2 md:-translate-y-1/2 md:w-80 md:rounded-lg bg-gray-900/95 backdrop-blur-md shadow-2xl text-white z-40 p-6"
     >
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold capitalize">{bot.type} Bot</h2>

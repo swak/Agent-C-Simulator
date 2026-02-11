@@ -15,6 +15,7 @@ const ENERGY_DRAIN_RATE: Record<string, number> = {
 };
 
 const ENERGY_RECHARGE_RATE = 2.0; // Units per second when idle
+const STANDBY_DRAIN_RATE = -0.1; // Small drain when fully charged to prevent overflow
 
 import { BotEntity } from '@/ecs/entities/bot';
 
@@ -30,8 +31,13 @@ export function updateEnergy(bot: BotEntity, deltaMs: number): void {
   let energyDelta = 0;
 
   if (state === 'idle') {
-    // Recharge when idle
-    energyDelta = ENERGY_RECHARGE_RATE * deltaSec;
+    if (energy.current >= energy.max) {
+      // Small standby drain when fully charged
+      energyDelta = STANDBY_DRAIN_RATE * deltaSec;
+    } else {
+      // Recharge when idle and below max
+      energyDelta = ENERGY_RECHARGE_RATE * deltaSec;
+    }
   } else {
     // Drain energy based on activity
     const drainRate = ENERGY_DRAIN_RATE[state] || 0;
@@ -45,8 +51,16 @@ export function updateEnergy(bot: BotEntity, deltaMs: number): void {
     current: newEnergy,
   };
 
-  // Force idle if energy depleted
+  // Force idle if energy depleted and pause task
   if (newEnergy <= 0 && state !== 'idle') {
     bot.aiState = { current: 'idle' };
+
+    // Pause current task (preserve details for resume)
+    if (bot.task && bot.task.active) {
+      bot.task = {
+        ...bot.task,
+        active: false,
+      };
+    }
   }
 }

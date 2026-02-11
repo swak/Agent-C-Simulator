@@ -12,7 +12,12 @@ import { vi } from 'vitest'
 import { afterEach, beforeAll } from 'vitest'
 
 // Mock WebGL context (Three.js requires it)
-beforeAll(() => {
+beforeAll(async () => {
+  // Register global keyboard listeners for Q/E bot selection
+  // Dynamic import to ensure localStorage mock is set up first
+  const { setupKeyboardListeners } = await import('../utils/keyboard')
+  setupKeyboardListeners()
+
   const canvas = document.createElement('canvas')
   const gl = {
     getExtension: vi.fn(() => ({})),

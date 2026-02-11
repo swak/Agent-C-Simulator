@@ -13,7 +13,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createWorld } from '@/ecs/world'
-import { createBot, assignTask, updateBotPosition, completeTask, updatePathfinding, customizeBot, serializeBot, deserializeBot } from '@/ecs/entities/bot'
+import { createBot, assignTask, updateBotPosition, completeTask, updatePathfinding, customizeBot, serializeBot, deserializeBot, removeBot, getBotMemoryDelta } from '@/ecs/entities/bot'
 import { createTerrain } from '@/ecs/entities/terrain'
 import { calculatePath } from '@/ecs/systems/pathfinding'
 import { moveAlongPath } from '@/ecs/systems/movement'
@@ -483,6 +483,42 @@ describe('Bot Entity System (ECS)', () => {
       // Then: Customization should be preserved
       expect(restoredBot.get('appearance').primaryColor).toBe('#FF0000')
       expect(restoredBot.get('appearance').accessories).toContain('hard-hat')
+    })
+  })
+
+  describe('Bot Removal', () => {
+    it('should remove bot by ID and update memory delta', () => {
+      // Given: A bot in the world
+      const world = createWorld()
+      const bot = createBot(world, { type: 'miner' })
+      const botId = bot.id!
+
+      expect(world.entities.find(e => e.id === botId)).toBeDefined()
+
+      // When: Remove bot by ID
+      removeBot(world, botId)
+
+      // Then: Bot should be removed from world
+      expect(world.entities.find(e => e.id === botId)).toBeUndefined()
+
+      // Then: Memory delta should be negative
+      expect(getBotMemoryDelta()).toBeLessThan(0)
+    })
+
+    it('should remove bot by entity object and update memory delta', () => {
+      // Given: A bot entity
+      const world = createWorld()
+      const bot = createBot(world, { type: 'miner' })
+      const entityCount = world.entities.length
+
+      // When: Remove bot by passing entity object
+      removeBot(world, bot)
+
+      // Then: Bot should be removed
+      expect(world.entities.length).toBe(entityCount - 1)
+
+      // Then: Memory delta should reflect removal
+      expect(getBotMemoryDelta()).toBeLessThan(0)
     })
   })
 })

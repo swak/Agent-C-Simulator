@@ -45,6 +45,13 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             />
           </label>
         </div>
+
+        {/* Branding footer */}
+        <div className="mt-8 pt-4 border-t border-gray-700 text-center text-xs text-gray-500">
+          <p>Agent-C Simulator v0.1.0</p>
+          <p className="mt-1">Designed by bots. Built by bots.</p>
+          <p className="mt-1">Powered by <a href="https://github.com/rivermark-research/miniature-guacamole" className="text-cyan-400 hover:underline" target="_blank" rel="noopener noreferrer">miniature-guacamole</a></p>
+        </div>
       </div>
     </div>
   );

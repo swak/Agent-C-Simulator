@@ -109,7 +109,7 @@ export function TechTree({ isOpen, onClose }: TechTreeProps) {
               )}
 
               {/* Render nodes */}
-              <div className="grid grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                 {techTree.nodes.map((node, index) => {
                   const isNew = newlyUnlocked.has(node.id);
                   const isSelected = selectedNode === node.id;

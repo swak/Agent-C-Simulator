@@ -63,6 +63,7 @@ interface GameState {
 
   // Bot management
   bots: Bot[];
+  selectedBotId: string | null;
 
   // Tech tree
   techTree: {
@@ -89,6 +90,8 @@ interface GameState {
   assignTask: (botId: string, task: Bot['currentTask']) => void;
   updateBotEnergy: (botId: string, delta: number) => void;
   getBotsByStatus: (status: Bot['status']) => Bot[];
+  selectNextBot: () => void;
+  selectPreviousBot: () => void;
 
   unlockTechNode: (nodeId: string) => boolean;
   getUnlockedNodeCount: () => number;
@@ -140,6 +143,7 @@ export const useGameStore = create<GameState>()(
       },
 
       bots: [],
+      selectedBotId: null,
 
       techTree: {
         nodes: initialTechTree,
@@ -246,6 +250,40 @@ export const useGameStore = create<GameState>()(
 
       getBotsByStatus: (status) => {
         return get().bots.filter((bot) => bot.status === status);
+      },
+
+      selectNextBot: () => {
+        const state = get();
+        const { bots, selectedBotId } = state;
+
+        if (bots.length === 0) return;
+
+        if (!selectedBotId) {
+          // No selection, select first bot
+          set({ selectedBotId: bots[0].id });
+        } else {
+          // Find current index
+          const currentIndex = bots.findIndex((b) => b.id === selectedBotId);
+          const nextIndex = (currentIndex + 1) % bots.length;
+          set({ selectedBotId: bots[nextIndex].id });
+        }
+      },
+
+      selectPreviousBot: () => {
+        const state = get();
+        const { bots, selectedBotId } = state;
+
+        if (bots.length === 0) return;
+
+        if (!selectedBotId) {
+          // No selection, select last bot
+          set({ selectedBotId: bots[bots.length - 1].id });
+        } else {
+          // Find current index
+          const currentIndex = bots.findIndex((b) => b.id === selectedBotId);
+          const previousIndex = (currentIndex - 1 + bots.length) % bots.length;
+          set({ selectedBotId: bots[previousIndex].id });
+        }
       },
 
       // Tech tree actions

@@ -15,7 +15,7 @@ export function InventoryPanel({ isOpen, onClose }: InventoryPanelProps) {
   return (
     <div
       data-testid="inventory-panel"
-      className="fixed inset-y-0 right-0 w-96 bg-gray-900/95 backdrop-blur-md text-white shadow-2xl z-40 overflow-y-auto"
+      className="fixed inset-y-0 right-0 w-full md:w-96 bg-gray-900/95 backdrop-blur-md text-white shadow-2xl z-40 overflow-y-auto"
       role="dialog"
       aria-label="Inventory panel"
     >

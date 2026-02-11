@@ -30,7 +30,7 @@ export interface Energy {
 }
 
 export interface Task {
-  type: 'gather' | 'craft' | 'build';
+  type: 'gather' | 'craft' | 'build' | 'return';
   active: boolean;
   progress: number;
   target?: Position;
@@ -90,11 +90,19 @@ export type EntityComponents = {
   particles?: Particles;
 };
 
+export interface ResourceNode {
+  id: string
+  type: 'wood' | 'stone' | 'iron' | 'crystals'
+  position: Position
+  available: boolean
+}
+
 export interface GameWorld extends World<EntityComponents> {
   camera?: {
     position: Position;
   };
   nextEntityId?: number;
+  resourceRegistry?: Map<string, ResourceNode>;
 }
 
 let globalEntityId = 1;
@@ -102,6 +110,7 @@ let globalEntityId = 1;
 export function createWorld(): GameWorld {
   const world = new World<EntityComponents>() as GameWorld;
   world.nextEntityId = 1;
+  world.resourceRegistry = new Map();
   return world;
 }
 
