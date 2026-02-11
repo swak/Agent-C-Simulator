@@ -266,7 +266,7 @@ describe('Game State Store', () => {
       useGameStore.getState().addResource('wood', 5)
 
       // When: Checking if recipe can be crafted
-      const canCraft = useGameStore.getState().canCraftRecipe('speed-upgrade')
+      const canCraft = useGameStore.getState().canCraftRecipe('speed-boost')
 
       // Then: Should return false if insufficient
       expect(canCraft).toBe(false)
@@ -278,7 +278,7 @@ describe('Game State Store', () => {
       useGameStore.getState().addResource('stone', 5)
 
       // When: Crafting an item
-      const itemId = useGameStore.getState().craftItem('speed-upgrade')
+      const itemId = useGameStore.getState().craftItem('speed-boost')
 
       // Then: Item should be in inventory
       expect(itemId).toBeTruthy()
@@ -292,7 +292,7 @@ describe('Game State Store', () => {
       useGameStore.getState().addResource('stone', 30)
 
       // When: Queueing multiple crafts
-      useGameStore.getState().queueCraft('speed-upgrade', 2)
+      useGameStore.getState().queueCraft('speed-boost', 2)
       useGameStore.getState().queueCraft('capacity-upgrade', 1)
 
       // Then: Queue should contain 3 items

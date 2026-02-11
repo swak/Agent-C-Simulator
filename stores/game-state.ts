@@ -109,7 +109,7 @@ interface GameState {
 
 // Recipe definitions
 const recipes: Record<string, { cost: Record<string, number>; duration: number; output: string }> = {
-  'speed-upgrade': { cost: { wood: 10, stone: 5 }, duration: 3000, output: 'speed-upgrade' },
+  'speed-boost': { cost: { wood: 10, stone: 5 }, duration: 3000, output: 'speed-boost' },
   'capacity-upgrade': { cost: { wood: 15, stone: 10 }, duration: 5000, output: 'capacity-upgrade' },
   'basic-component': { cost: { wood: 5 }, duration: 3000, output: 'basic-component' },
   'advanced-component': { cost: { wood: 20, stone: 15, iron: 5 }, duration: 8000, output: 'advanced-component' },
