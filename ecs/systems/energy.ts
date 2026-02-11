@@ -20,6 +20,8 @@ const STANDBY_DRAIN_RATE = -0.1; // Small drain when fully charged to prevent ov
 import { BotEntity } from '@/ecs/entities/bot';
 import { GameWorld } from '@/ecs/world';
 import { releaseResourceNode } from './resources';
+import { distance3D } from '@/utils/math';
+import { BASE_POSITION, BASE_RADIUS, BASE_RECHARGE_RATE } from '@/utils/constants';
 
 export function updateEnergy(bot: BotEntity, deltaMs: number, world?: GameWorld): void {
   const aiState = bot.aiState;
@@ -37,8 +39,11 @@ export function updateEnergy(bot: BotEntity, deltaMs: number, world?: GameWorld)
       // Small standby drain when fully charged
       energyDelta = STANDBY_DRAIN_RATE * deltaSec;
     } else {
-      // Recharge when idle and below max
-      energyDelta = ENERGY_RECHARGE_RATE * deltaSec;
+      // Boost recharge rate when near base
+      const pos = bot.position;
+      const nearBase = pos && distance3D(pos, BASE_POSITION) < BASE_RADIUS;
+      const rechargeRate = nearBase ? BASE_RECHARGE_RATE : ENERGY_RECHARGE_RATE;
+      energyDelta = rechargeRate * deltaSec;
     }
   } else {
     // Drain energy based on activity

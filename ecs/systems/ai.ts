@@ -15,8 +15,7 @@ import { findNearestResource, claimResourceNode, releaseResourceNode } from './r
 import { calculatePath } from './pathfinding'
 import { canDeposit } from './deposit'
 import { distance3D } from '@/utils/math'
-
-const BASE_POSITION = { x: 0, y: 0, z: 0 }
+import { BASE_POSITION, BASE_RADIUS, ENERGY_FULL_THRESHOLD } from '@/utils/constants'
 const ARRIVAL_THRESHOLD = 1.0
 const ENERGY_RESUME_THRESHOLD = 20
 
@@ -136,6 +135,15 @@ function handleIdleState(bot: BotEntity, world: GameWorld): void {
   if (canDeposit(bot)) {
     // Let deposit system handle this
     return
+  }
+
+  // Stay at base to recharge if energy is low
+  if (energy && energy.current < ENERGY_FULL_THRESHOLD) {
+    const distToBase = distance3D(position, BASE_POSITION)
+    if (distToBase < BASE_RADIUS) {
+      // Stay idle at base until energy reaches threshold
+      return
+    }
   }
 
   // Check if inventory is full

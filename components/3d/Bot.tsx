@@ -92,6 +92,18 @@ export function Bot({ bot }: BotProps) {
         />
       )}
 
+      {/* Cyan sparkles when recharging at base */}
+      {bot.status === 'recharging' && (
+        <Sparkles
+          count={15}
+          scale={1.2}
+          size={1.5}
+          speed={0.3}
+          opacity={0.5}
+          color="#06B6D4"
+        />
+      )}
+
       {/* Html overlay for status */}
       <Html
         position={[0, 1.2, 0]}

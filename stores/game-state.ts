@@ -16,7 +16,7 @@ export interface Bot {
   id: string;
   type: 'miner' | 'hauler' | 'crafter' | 'scout';
   position?: { x: number; y: number; z: number };
-  status: 'idle' | 'working' | 'moving' | 'returning' | 'blocked';
+  status: 'idle' | 'working' | 'moving' | 'returning' | 'blocked' | 'recharging';
   energy: number;
   currentTask?: {
     type: 'gather' | 'craft' | 'build' | 'return';
@@ -90,6 +90,7 @@ interface GameState {
   assignTask: (botId: string, task: Bot['currentTask']) => void;
   updateBotEnergy: (botId: string, delta: number) => void;
   getBotsByStatus: (status: Bot['status']) => Bot[];
+  setSelectedBotId: (botId: string | null) => void;
   selectNextBot: () => void;
   selectPreviousBot: () => void;
 
@@ -259,6 +260,10 @@ export const useGameStore = create<GameState>()(
 
       getBotsByStatus: (status) => {
         return get().bots.filter((bot) => bot.status === status);
+      },
+
+      setSelectedBotId: (botId) => {
+        set({ selectedBotId: botId });
       },
 
       selectNextBot: () => {

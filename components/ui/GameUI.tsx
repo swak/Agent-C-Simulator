@@ -16,10 +16,13 @@ export function GameUI() {
   const [techTreeOpen, setTechTreeOpen] = useState(false);
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [botCustomizerOpen, setBotCustomizerOpen] = useState(false);
 
   const bots = useGameStore((s) => s.bots);
+  const selectedBotId = useGameStore((s) => s.selectedBotId);
+  const setSelectedBotId = useGameStore((s) => s.setSelectedBotId);
+  const selectNextBot = useGameStore((s) => s.selectNextBot);
+  const selectPreviousBot = useGameStore((s) => s.selectPreviousBot);
 
   // Create hidden status indicators for e2e tests
   const workingBots = bots.filter((b) => b.status === 'working');
@@ -27,13 +30,14 @@ export function GameUI() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Close all modals on Escape
+      // Close all modals on Escape, clear bot selection
       if (e.key === 'Escape') {
         setCraftingOpen(false);
         setTechTreeOpen(false);
         setInventoryOpen(false);
         setSettingsOpen(false);
         setBotCustomizerOpen(false);
+        setSelectedBotId(null);
         return;
       }
 
@@ -56,27 +60,15 @@ export function GameUI() {
 
       // Cycle bots with Q/E
       if (e.key === 'q' || e.key === 'Q') {
-        if (bots.length > 0) {
-          const currentIndex = selectedBotId
-            ? bots.findIndex((b) => b.id === selectedBotId)
-            : -1;
-          const nextIndex = currentIndex > 0 ? currentIndex - 1 : bots.length - 1;
-          setSelectedBotId(bots[nextIndex].id);
-        }
+        selectPreviousBot();
       } else if (e.key === 'e' || e.key === 'E') {
-        if (bots.length > 0) {
-          const currentIndex = selectedBotId
-            ? bots.findIndex((b) => b.id === selectedBotId)
-            : -1;
-          const nextIndex = (currentIndex + 1) % bots.length;
-          setSelectedBotId(bots[nextIndex].id);
-        }
+        selectNextBot();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [bots, selectedBotId]);
+  }, [bots, selectedBotId, setSelectedBotId, selectNextBot, selectPreviousBot]);
 
   // Process crafting queue
   useEffect(() => {

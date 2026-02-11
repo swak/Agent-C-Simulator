@@ -12,8 +12,7 @@ import { BotEntity } from '@/ecs/entities/bot'
 import { GameWorld } from '@/ecs/world'
 import { useGameStore } from '@/stores/game-state'
 import { distance3D } from '@/utils/math'
-
-const BASE_POSITION = { x: 0, y: 0, z: 0 }
+import { BASE_POSITION } from '@/utils/constants'
 const DEPOSIT_DISTANCE_THRESHOLD = 1.0
 
 /**

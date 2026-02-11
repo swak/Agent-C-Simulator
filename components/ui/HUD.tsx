@@ -1,7 +1,6 @@
 'use client';
 
 import { useGameStore } from '@/stores/game-state';
-import { useState } from 'react';
 import { getWorldInstance } from '@/ecs/world-instance';
 import { createBot } from '@/ecs/entities/bot';
 
@@ -9,7 +8,8 @@ export function HUD() {
   const resources = useGameStore((s) => s.resources);
   const bots = useGameStore((s) => s.bots);
   const addBot = useGameStore((s) => s.addBot);
-  const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
+  const selectedBotId = useGameStore((s) => s.selectedBotId);
+  const setSelectedBotId = useGameStore((s) => s.setSelectedBotId);
 
   const handleAddBot = () => {
     const world = getWorldInstance();
@@ -21,7 +21,7 @@ export function HUD() {
   };
 
   const handleSelectBot = (botId: string) => {
-    setSelectedBotId(botId);
+    setSelectedBotId(selectedBotId === botId ? null : botId);
   };
 
   return (
@@ -170,25 +170,29 @@ function ResourceDisplay({
 }
 
 function BotStatusIcon({ status }: { status: string }) {
-  const icons = {
+  const icons: Record<string, string> = {
     idle: 'M',
     working: 'W',
     moving: '>',
     returning: '<',
     blocked: 'X',
+    recharging: 'R',
   };
+
+  const colorClass =
+    status === 'working'
+      ? 'bg-green-500'
+      : status === 'blocked'
+      ? 'bg-red-500'
+      : status === 'recharging'
+      ? 'bg-cyan-500'
+      : 'bg-gray-600';
 
   return (
     <div
       data-testid="bot-status"
       data-icon={status}
-      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-        status === 'working'
-          ? 'bg-green-500'
-          : status === 'blocked'
-          ? 'bg-red-500'
-          : 'bg-gray-600'
-      }`}
+      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${colorClass}`}
     >
       <svg className="w-3 h-3" viewBox="0 0 16 16" fill="currentColor">
         <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="10">

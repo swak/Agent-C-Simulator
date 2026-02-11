@@ -8,6 +8,7 @@ import { Terrain } from './Terrain';
 import { Bot } from './Bot';
 import { Resource } from './Resource';
 import { Camera } from './Camera';
+import { HomeBase } from './HomeBase';
 import { GameLoop } from './GameLoop';
 import { useGameStore } from '@/stores/game-state';
 import { createWorld, GameWorld } from '@/ecs/world';
@@ -140,6 +141,7 @@ export default function Scene() {
 
           <Physics gravity={[0, -9.81, 0]}>
             <Terrain />
+            <HomeBase />
 
             {/* ContactShadows for ground shadows */}
             <ContactShadows

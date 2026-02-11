@@ -9,14 +9,28 @@
 import { GameWorld } from '@/ecs/world'
 import { BotEntity } from '@/ecs/entities/bot'
 import { useGameStore, Bot } from '@/stores/game-state'
+import { distance3D, Position3D } from '@/utils/math'
+import { BASE_POSITION, BASE_RADIUS } from '@/utils/constants'
 
 /**
  * Map ECS AI state + task to Zustand status.
  * 'moving' with a 'return' task maps to 'returning'.
+ * 'idle' near base with energy < 100 maps to 'recharging'.
  */
-function mapAIStateToStatus(aiState: string, taskType?: string): Bot['status'] {
+function mapAIStateToStatus(
+  aiState: string,
+  taskType?: string,
+  position?: Position3D,
+  energy?: number,
+): Bot['status'] {
   switch (aiState) {
     case 'idle':
+      if (position && energy !== undefined && energy < 100) {
+        const distToBase = distance3D(position, BASE_POSITION)
+        if (distToBase < BASE_RADIUS) {
+          return 'recharging'
+        }
+      }
       return 'idle'
     case 'moving':
       return taskType === 'return' ? 'returning' : 'moving'
@@ -49,7 +63,12 @@ export function syncECSToZustand(world: GameWorld): void {
         ? { x: bot.position.x, y: bot.position.y, z: bot.position.z }
         : { x: 0, y: 0, z: 0 },
       status: bot.aiState
-        ? mapAIStateToStatus(bot.aiState.current, bot.task?.type)
+        ? mapAIStateToStatus(
+            bot.aiState.current,
+            bot.task?.type,
+            bot.position ?? undefined,
+            bot.energy?.current,
+          )
         : 'idle',
       energy: Math.round(bot.energy?.current ?? 100),
       currentTask: bot.task
