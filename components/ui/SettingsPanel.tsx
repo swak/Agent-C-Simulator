@@ -35,7 +35,9 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     }
 
     resetGame();
-    window.location.reload();
+    // Use requestAnimationFrame to ensure state clears before reload
+    // prevents sync from repopulating Zustand with stale ECS entities
+    requestAnimationFrame(() => window.location.reload());
   };
 
   return (

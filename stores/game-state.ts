@@ -86,7 +86,7 @@ interface GameState {
   recordProduction: (resourceType: string, amount: number, duration: number) => void;
   getProductionRate: (resourceType: string) => number;
 
-  addBot: (config: Partial<Bot>) => string;
+  addBot: (config: Partial<Bot>) => string | null;
   assignTask: (botId: string, task: Bot['currentTask']) => void;
   updateBotEnergy: (botId: string, delta: number) => void;
   getBotsByStatus: (status: Bot['status']) => Bot[];
@@ -209,6 +209,13 @@ export const useGameStore = create<GameState>()(
 
       // Bot actions
       addBot: (config) => {
+        const state = get();
+
+        // Enforce bot cap of 10 (WS-03)
+        if (state.bots.length >= 10) {
+          return null;
+        }
+
         const botId = `bot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const newBot: Bot = {
           id: botId,

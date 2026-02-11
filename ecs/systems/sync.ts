@@ -51,7 +51,7 @@ export function syncECSToZustand(world: GameWorld): void {
       status: bot.aiState
         ? mapAIStateToStatus(bot.aiState.current, bot.task?.type)
         : 'idle',
-      energy: bot.energy?.current ?? 100,
+      energy: Math.round(bot.energy?.current ?? 100),
       currentTask: bot.task
         ? {
             type: bot.task.type,

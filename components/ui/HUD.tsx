@@ -63,11 +63,12 @@ export function HUD() {
           aria-label="Bot roster"
         >
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold">Bots ({bots.length})</h2>
+            <h2 className="text-sm font-semibold">Bots ({bots.length}/10)</h2>
             <button
               data-testid="bot-roster-add"
               onClick={handleAddBot}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
+              disabled={bots.length >= 10}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs disabled:bg-gray-600 disabled:cursor-not-allowed"
               aria-label="Add bot"
             >
               + Add
@@ -94,7 +95,7 @@ export function HUD() {
                     <BotStatusIcon status={bot.status} />
                     <span className="text-sm capitalize">{bot.type}</span>
                   </div>
-                  <span className="text-xs text-gray-400">{bot.energy}%</span>
+                  <span className="text-xs text-gray-400">{Math.floor(bot.energy)}%</span>
                 </div>
               </div>
             ))}

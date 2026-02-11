@@ -6,10 +6,12 @@
  * - Mock implementations for WebGL/Canvas APIs
  * - Zustand store reset between tests
  * - Audio mocks (Howler.js)
+ * - jest-dom matchers for RTL assertions
  */
 
 import { vi } from 'vitest'
 import { afterEach, beforeAll } from 'vitest'
+import '@testing-library/jest-dom/vitest'
 
 // Mock WebGL context (Three.js requires it)
 beforeAll(async () => {
@@ -138,3 +140,10 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 })
+
+// Mock ResizeObserver for drei components (Html, etc.)
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}

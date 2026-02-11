@@ -11,7 +11,7 @@
 
 import { BotEntity } from '@/ecs/entities/bot'
 import { GameWorld } from '@/ecs/world'
-import { findNearestResource, claimResourceNode } from './resources'
+import { findNearestResource, claimResourceNode, releaseResourceNode } from './resources'
 import { calculatePath } from './pathfinding'
 import { canDeposit } from './deposit'
 import { distance3D } from '@/utils/math'
@@ -66,6 +66,11 @@ export function updateBotAI(bot: BotEntity, world: GameWorld, deltaMs: number): 
   // Check if inventory is full (trigger return for active bots)
   if (inventory.items.length >= stats.capacity) {
     if (aiState.current === 'gathering' || aiState.current === 'moving') {
+      // Release resource node if claimed
+      if (task?.targetNodeId) {
+        releaseResourceNode(world, task.targetNodeId)
+      }
+
       // Calculate path to base
       const path = calculatePath(position, BASE_POSITION)
       if (path.success) {
@@ -184,9 +189,10 @@ function handleIdleState(bot: BotEntity, world: GameWorld): void {
       type: 'gather',
       resourceType: selectedResource.type,
       target: selectedResource.position,
+      targetNodeId: selectedResource.id,
       active: true,
       progress: 0,
-      duration: 5000,
+      duration: 2000,
     }
     bot.aiState = { current: 'moving' }
   }

@@ -18,8 +18,10 @@ const ENERGY_RECHARGE_RATE = 2.0; // Units per second when idle
 const STANDBY_DRAIN_RATE = -0.1; // Small drain when fully charged to prevent overflow
 
 import { BotEntity } from '@/ecs/entities/bot';
+import { GameWorld } from '@/ecs/world';
+import { releaseResourceNode } from './resources';
 
-export function updateEnergy(bot: BotEntity, deltaMs: number): void {
+export function updateEnergy(bot: BotEntity, deltaMs: number, world?: GameWorld): void {
   const aiState = bot.aiState;
   const energy = bot.energy;
 
@@ -57,6 +59,11 @@ export function updateEnergy(bot: BotEntity, deltaMs: number): void {
 
     // Pause current task (preserve details for resume)
     if (bot.task && bot.task.active) {
+      // Release resource node if bot was gathering
+      if (bot.task.targetNodeId && world) {
+        releaseResourceNode(world, bot.task.targetNodeId);
+      }
+
       bot.task = {
         ...bot.task,
         active: false,

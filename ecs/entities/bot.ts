@@ -50,7 +50,12 @@ const BOT_STATS: Record<BotType, Stats> = {
   scout: { speed: 7, capacity: 5, gatheringModifier: 0.8 },
 };
 
-export function createBot(world: GameWorld, config: BotConfig): BotEntity {
+export function createBot(world: GameWorld, config: BotConfig): BotEntity | null {
+  // Enforce bot cap of 10 (WS-03)
+  if (world.entities.length >= 10) {
+    return null;
+  }
+
   const position: Position = config.position || { x: 0, y: 0, z: 0 };
   const botType = config.type;
   const stats = BOT_STATS[botType];
@@ -103,7 +108,7 @@ export function assignTask(
     progress: 0,
     target: task.target,
     resourceType: task.resourceType,
-    duration: 5000, // Default 5 seconds
+    duration: 2000, // Default 2 seconds (WS-03)
   });
 
   bot.set('aiState', { current: 'moving' });
@@ -176,11 +181,13 @@ export function serializeBot(bot: BotEntity): Record<string, unknown> {
 export function deserializeBot(
   world: GameWorld,
   data: Record<string, unknown>
-): BotEntity {
+): BotEntity | null {
   const bot = createBot(world, {
     type: data.botType as BotType,
     position: data.position as Position,
   });
+
+  if (!bot) return null;
 
   if (data.energy) bot.set('energy', data.energy as Energy);
   if (data.task) bot.set('task', data.task as Task);

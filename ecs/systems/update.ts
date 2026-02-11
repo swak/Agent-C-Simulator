@@ -33,7 +33,7 @@ export function updateWorld(world: GameWorld, delta: number): void {
 
       // Run systems in order
       // 1. Energy (drains/recharges, pauses tasks if depleted)
-      updateEnergy(bot, deltaMs);
+      updateEnergy(bot, deltaMs, world);
 
       // 2. Movement (if bot has a path)
       if (bot.path && bot.path.waypoints.length > 0 && bot.aiState?.current === 'moving') {
@@ -42,7 +42,7 @@ export function updateWorld(world: GameWorld, delta: number): void {
 
       // 3. Gathering (if bot is gathering)
       if (bot.aiState?.current === 'gathering') {
-        updateGathering(bot, deltaMs);
+        updateGathering(bot, deltaMs, world);
       }
 
       // 4. Bot AI (decision making)

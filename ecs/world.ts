@@ -36,6 +36,7 @@ export interface Task {
   target?: Position;
   resourceType?: string;
   duration?: number;
+  targetNodeId?: string;
 }
 
 export interface AIState {

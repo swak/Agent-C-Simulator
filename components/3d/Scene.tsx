@@ -1,8 +1,9 @@
 'use client';
 
+import React, { Suspense, useState, useCallback, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { Suspense, useState, useCallback, useRef, useEffect } from 'react';
+import { Sky, ContactShadows } from '@react-three/drei';
 import { Terrain } from './Terrain';
 import { Bot } from './Bot';
 import { Resource } from './Resource';
@@ -89,6 +90,7 @@ function useECSWorld(): GameWorld {
     }
 
     return () => {
+      worldRef.current = null;
       clearWorldInstance();
     };
   }, []);
@@ -128,8 +130,25 @@ export default function Scene() {
 
           <fog attach="fog" args={['#87CEEB', 40, 100]} />
 
+          {/* Sky component for atmosphere */}
+          <Sky
+            distance={450000}
+            sunPosition={[0, 1, 0]}
+            inclination={0.6}
+            azimuth={0.25}
+          />
+
           <Physics gravity={[0, -9.81, 0]}>
             <Terrain />
+
+            {/* ContactShadows for ground shadows */}
+            <ContactShadows
+              position={[0, 0.01, 0]}
+              opacity={0.4}
+              scale={50}
+              blur={1.5}
+              far={20}
+            />
 
             {/* Resource nodes */}
             {RESOURCE_NODES.map((node) => (

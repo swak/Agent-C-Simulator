@@ -30,12 +30,12 @@ describe('Frame Rate Performance', () => {
   })
 
   describe('Desktop Performance (60fps target)', () => {
-    it('should maintain 60fps with 20 bots active', async () => {
-      // Given: A scene with 20 active bots
+    it('should maintain 60fps with 10 bots active (max cap)', async () => {
+      // Given: A scene with 10 active bots (max cap from WS-03)
       const world = createWorld()
       const bots = []
 
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 10; i++) {
         bots.push(
           createBot(world, {
             type: 'miner',
@@ -48,20 +48,20 @@ describe('Frame Rate Performance', () => {
       // When: Measuring frame rate over 3 seconds
       const fps = await measureFrameRate(world, 3000)
 
-      // Then: Should average 60fps or higher
+      // Then: Should average 60fps or higher (10 bots is well within performance budget)
       expect(fps.average).toBeGreaterThanOrEqual(60)
-      expect(fps.min).toBeGreaterThanOrEqual(50) // Allow some variance
-      expect(fps.drops).toBeLessThan(5) // Fewer than 5 frame drops below 55fps
+      expect(fps.min).toBeGreaterThanOrEqual(55) // Less variance with fewer bots
+      expect(fps.drops).toBeLessThan(3) // Fewer frame drops with max 10 bots
     })
 
-    it('should handle 50 bots without dropping below 30fps', async () => {
-      // Given: A stress test with 50 bots
+    it('should handle max 10 bots easily exceeding 60fps', async () => {
+      // Given: Max 10 bots (stress test now limited by cap)
       const world = createWorld()
 
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 10; i++) {
         createBot(world, {
           type: 'miner',
-          position: { x: (i % 10) * 3, y: 0, z: Math.floor(i / 10) * 3 },
+          position: { x: (i % 5) * 3, y: 0, z: Math.floor(i / 5) * 3 },
           status: 'working',
         })
       }
@@ -69,15 +69,16 @@ describe('Frame Rate Performance', () => {
       // When: Measuring frame rate
       const fps = await measureFrameRate(world, 3000)
 
-      // Then: Minimum acceptable performance
-      expect(fps.min).toBeGreaterThanOrEqual(30)
+      // Then: Should maintain excellent performance with 10-bot cap
+      expect(fps.average).toBeGreaterThanOrEqual(60)
+      expect(fps.min).toBeGreaterThanOrEqual(55)
     })
 
-    it('should limit draw calls to < 200', () => {
-      // Given: A fully populated scene
+    it('should limit draw calls to < 100', () => {
+      // Given: A fully populated scene with max 10 bots
       const world = createWorld()
 
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 10; i++) {
         createBot(world, { type: 'miner' })
       }
 
@@ -87,31 +88,31 @@ describe('Frame Rate Performance', () => {
       // When: Counting draw calls
       const drawCalls = countDrawCalls(world)
 
-      // Then: Should be under budget
-      expect(drawCalls).toBeLessThan(200)
+      // Then: Should be well under budget with fewer bots
+      expect(drawCalls).toBeLessThan(100)
     })
 
     it('should use instanced rendering for bot meshes', () => {
-      // Given: Multiple bots of the same type
+      // Given: Multiple bots of the same type (max 10)
       const world = createWorld()
 
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 10; i++) {
         createBot(world, { type: 'miner' })
       }
 
       // When: Checking rendering strategy
       const instances = countInstances(world)
 
-      // Then: Should use InstancedMesh (1 draw call for 20 bots)
+      // Then: Should use InstancedMesh (1 draw call for 10 bots)
       expect(instances.miner).toBe(1) // Single instanced mesh
-      expect(instances.minerCount).toBe(20) // 20 instances
+      expect(instances.minerCount).toBe(10) // 10 instances
     })
 
     it('should complete frame update in < 16.67ms', () => {
-      // Given: A world with typical bot count
+      // Given: A world with typical bot count (8 bots)
       const world = createWorld()
 
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 8; i++) {
         createBot(world, { type: 'miner', status: 'working' })
       }
 
@@ -363,10 +364,10 @@ describe('Frame Rate Performance', () => {
     })
 
     it('should dynamically downgrade if frame rate drops', async () => {
-      // Given: A scene with borderline performance
+      // Given: A scene with max 10 bots
       const world = createWorld()
 
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 10; i++) {
         createBot(world, { type: 'miner', status: 'working' })
       }
 
