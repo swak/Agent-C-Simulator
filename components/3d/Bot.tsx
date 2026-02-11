@@ -40,6 +40,7 @@ const BOT_COLORS: Record<BotType['type'], string> = {
 
 export function Bot({ bot }: BotProps) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
 
   const color = BOT_COLORS[bot.type];
   const trailColor = TRAIL_COLORS[bot.type];
@@ -48,23 +49,39 @@ export function Bot({ bot }: BotProps) {
   const upgradeCount = bot.upgrades?.length ?? 0;
   const hasUpgrades = upgradeCount > 0;
   const typeInitial = bot.type[0].toUpperCase();
+  const inventoryCount = bot.inventoryCount ?? 0;
+  const capacity = bot.capacity ?? 10;
+  const carryPercent = capacity > 0 ? Math.round((inventoryCount / capacity) * 100) : 0;
+  const isCarrying = inventoryCount > 0;
+  const isMoving = bot.status === 'moving' || bot.status === 'returning';
 
   const position = useMemo(
     () => new THREE.Vector3(bot.position?.x || 0, bot.position?.y || 0.5, bot.position?.z || 0),
     [bot.position?.x, bot.position?.y, bot.position?.z]
   );
 
-  // Subtle rotation when working
+  // Rotation when working + pulsing upgrade ring
   useFrame((state) => {
     if (!meshRef.current) return;
+    const time = state.clock.getElapsedTime();
 
     if (bot.status === 'working' && bot.currentTask) {
-      const time = state.clock.getElapsedTime();
       meshRef.current.rotation.y = Math.sin(time * 3) * 0.2;
+    }
+
+    // Pulse the upgrade ring
+    if (ringRef.current && hasUpgrades) {
+      const pulse = 0.3 + Math.sin(time * 2) * 0.2;
+      (ringRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
+      ringRef.current.rotation.z = time * 0.5;
     }
   });
 
   const energy = Math.round(bot.energy);
+
+  // Upgraded bots glow brighter
+  const baseEmissive = hasUpgrades ? 0.15 : 0.05;
+  const workingEmissive = hasUpgrades ? 0.35 : 0.2;
 
   return (
     <group
@@ -73,18 +90,32 @@ export function Bot({ bot }: BotProps) {
       userData={{
         testId: 'bot-entity',
         status: bot.status,
-        inventoryFull: bot.currentTask?.progress === 100,
+        inventoryFull: carryPercent >= 100,
         hasUpgrades,
       }}
     >
-      {/* Gold upgrade ring at base */}
+      {/* Gold upgrade ring at base — bigger, pulsing */}
       {hasUpgrades && (
-        <mesh position={[0, -0.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.45, 0.06, 8, 24]} />
+        <mesh ref={ringRef} position={[0, -0.15, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.55 + upgradeCount * 0.05, 0.08, 12, 32]} />
           <meshStandardMaterial
             color="#FFD700"
             emissive="#FFD700"
-            emissiveIntensity={0.4}
+            emissiveIntensity={0.5}
+            metalness={0.9}
+            roughness={0.1}
+          />
+        </mesh>
+      )}
+
+      {/* Second ring for 2+ upgrades */}
+      {upgradeCount >= 2 && (
+        <mesh position={[0, 0.0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.4, 0.04, 8, 24]} />
+          <meshStandardMaterial
+            color="#FFA500"
+            emissive="#FFA500"
+            emissiveIntensity={0.3}
             metalness={0.8}
             roughness={0.2}
           />
@@ -93,10 +124,10 @@ export function Bot({ bot }: BotProps) {
 
       {/* Float replaces manual bobbing */}
       <Float speed={2} rotationIntensity={0} floatIntensity={0.5} enabled={bot.status === 'idle'}>
-        {/* Trail for movement effect */}
+        {/* Trail — much wider and longer for visibility */}
         <Trail
-          width={0.5}
-          length={4}
+          width={isMoving ? 2.0 : 1.2}
+          length={isMoving ? 8 : 5}
           color={trailColor}
           attenuation={(t) => t * t}
         >
@@ -107,13 +138,13 @@ export function Bot({ bot }: BotProps) {
               roughness={0.5}
               metalness={0.3}
               emissive={color}
-              emissiveIntensity={bot.status === 'working' ? 0.2 : 0.05}
+              emissiveIntensity={bot.status === 'working' ? workingEmissive : baseEmissive}
             />
           </mesh>
 
-          {/* Energy indicator with type initial */}
+          {/* Energy indicator */}
           <mesh position={[0, 0.8, 0]} castShadow>
-            <sphereGeometry args={[0.1, 8, 8]} />
+            <sphereGeometry args={[0.12, 8, 8]} />
             <meshStandardMaterial
               color={energy > 50 ? '#4AE29A' : energy > 20 ? '#E2944A' : '#E24A4A'}
               emissive={energy > 50 ? '#4AE29A' : energy > 20 ? '#E2944A' : '#E24A4A'}
@@ -123,33 +154,45 @@ export function Bot({ bot }: BotProps) {
         </Trail>
       </Float>
 
-      {/* Sparkles when working */}
+      {/* Sparkles when working — 4x bigger */}
       {bot.status === 'working' && (
         <Sparkles
-          count={20}
-          scale={1.5}
-          size={2}
-          speed={0.4}
-          opacity={0.6}
+          count={30}
+          scale={3}
+          size={8}
+          speed={0.6}
+          opacity={0.8}
           color={color}
         />
       )}
 
-      {/* Cyan sparkles when recharging at base */}
+      {/* Cyan sparkles when recharging — 4x bigger */}
       {bot.status === 'recharging' && (
         <Sparkles
-          count={15}
-          scale={1.2}
-          size={1.5}
+          count={25}
+          scale={2.5}
+          size={6}
+          speed={0.5}
+          opacity={0.7}
+          color="#06B6D4"
+        />
+      )}
+
+      {/* Gold sparkles for upgraded bots */}
+      {hasUpgrades && (
+        <Sparkles
+          count={10 + upgradeCount * 5}
+          scale={2}
+          size={4}
           speed={0.3}
           opacity={0.5}
-          color="#06B6D4"
+          color="#FFD700"
         />
       )}
 
       {/* Html overlay for status */}
       <Html
-        position={[0, 1.2, 0]}
+        position={[0, 1.4, 0]}
         center
         distanceFactor={8}
         style={{
@@ -159,44 +202,78 @@ export function Bot({ bot }: BotProps) {
       >
         <div
           style={{
-            background: 'rgba(0, 0, 0, 0.7)',
+            background: 'rgba(0, 0, 0, 0.75)',
             color: 'white',
-            padding: '4px 8px',
-            borderRadius: '4px',
+            padding: '5px 10px',
+            borderRadius: '5px',
             fontSize: '10px',
             whiteSpace: 'nowrap',
             textAlign: 'center',
+            border: hasUpgrades ? '1px solid rgba(255, 215, 0, 0.5)' : 'none',
           }}
         >
           <div style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
             [{typeInitial}] {bot.status}
           </div>
-          <div style={{ fontSize: '9px', marginTop: '2px' }}>
+
+          {/* Energy bar */}
+          <div style={{ fontSize: '9px', marginTop: '3px' }}>
             Energy: {energy}%
           </div>
+          <div
+            style={{
+              marginTop: '2px',
+              height: '3px',
+              width: '60px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: '2px',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${energy}%`,
+                height: '100%',
+                background: energy > 50 ? '#4AE29A' : energy > 20 ? '#E2944A' : '#E24A4A',
+                transition: 'width 0.3s',
+              }}
+            />
+          </div>
+
+          {/* Carry bar */}
+          <div style={{ fontSize: '9px', marginTop: '3px', color: carryPercent >= 100 ? '#E24A4A' : '#ccc' }}>
+            Carry: {inventoryCount}/{capacity}
+          </div>
+          <div
+            style={{
+              marginTop: '2px',
+              height: '3px',
+              width: '60px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: '2px',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${carryPercent}%`,
+                height: '100%',
+                background: carryPercent >= 100 ? '#E24A4A' : carryPercent > 50 ? '#E2944A' : '#4A90E2',
+                transition: 'width 0.3s',
+              }}
+            />
+          </div>
+
           {hasUpgrades && (
-            <div style={{ fontSize: '9px', color: '#FFD700' }}>
+            <div style={{ fontSize: '9px', marginTop: '2px', color: '#FFD700', fontWeight: 'bold' }}>
               Upgrades: {upgradeCount}/3
             </div>
           )}
-          {bot.currentTask && bot.currentTask.progress !== undefined && (
-            <div
-              style={{
-                marginTop: '4px',
-                height: '3px',
-                background: 'rgba(255, 255, 255, 0.3)',
-                borderRadius: '2px',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  width: `${bot.currentTask.progress}%`,
-                  height: '100%',
-                  background: '#4AE29A',
-                  transition: 'width 0.3s',
-                }}
-              />
+
+          {/* Gather progress */}
+          {bot.currentTask && bot.currentTask.progress !== undefined && bot.status === 'working' && (
+            <div style={{ fontSize: '9px', marginTop: '3px', color: '#4AE29A' }}>
+              Gathering: {Math.round(bot.currentTask.progress)}%
             </div>
           )}
         </div>

@@ -71,6 +71,8 @@ export function syncECSToZustand(world: GameWorld): void {
           )
         : 'idle',
       energy: Math.round(bot.energy?.current ?? 100),
+      inventoryCount: bot.inventory?.items.length ?? 0,
+      capacity: bot.stats?.capacity ?? 10,
       upgrades: bot.upgrades?.applied,
       currentTask: bot.task
         ? {

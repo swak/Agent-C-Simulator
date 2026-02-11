@@ -18,6 +18,8 @@ export interface Bot {
   position?: { x: number; y: number; z: number };
   status: 'idle' | 'working' | 'moving' | 'returning' | 'blocked' | 'recharging';
   energy: number;
+  inventoryCount?: number;
+  capacity?: number;
   upgrades?: Array<{ type: string; appliedAt: number }>;
   currentTask?: {
     type: 'gather' | 'craft' | 'build' | 'return';
