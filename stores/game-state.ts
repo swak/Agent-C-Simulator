@@ -19,7 +19,7 @@ export interface Bot {
   status: 'idle' | 'working' | 'moving' | 'returning' | 'blocked';
   energy: number;
   currentTask?: {
-    type: 'gather' | 'craft' | 'build';
+    type: 'gather' | 'craft' | 'build' | 'return';
     resourceType?: string;
     targetNodeId?: string;
     progress?: number;
