@@ -1,8 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { useGameStore } from '@/stores/game-state';
 import { getWorldInstance } from '@/ecs/world-instance';
 import { createBot } from '@/ecs/entities/bot';
+import { BOT_CONSTRUCTION_COSTS } from '@/utils/constants';
+import type { BotType } from '@/ecs/world';
+
+const BOT_TYPE_LABELS: Record<string, string> = {
+  miner: 'Miner',
+  hauler: 'Hauler',
+  crafter: 'Crafter',
+  scout: 'Scout',
+};
 
 export function HUD() {
   const resources = useGameStore((s) => s.resources);
@@ -10,6 +20,7 @@ export function HUD() {
   const addBot = useGameStore((s) => s.addBot);
   const selectedBotId = useGameStore((s) => s.selectedBotId);
   const setSelectedBotId = useGameStore((s) => s.setSelectedBotId);
+  const [showBotBuilder, setShowBotBuilder] = useState(false);
 
   const handleAddBot = () => {
     const world = getWorldInstance();
@@ -66,14 +77,16 @@ export function HUD() {
             <h2 className="text-sm font-semibold">Bots ({bots.length}/10)</h2>
             <button
               data-testid="bot-roster-add"
-              onClick={handleAddBot}
+              onClick={() => setShowBotBuilder(!showBotBuilder)}
               disabled={bots.length >= 10}
               className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs disabled:bg-gray-600 disabled:cursor-not-allowed"
-              aria-label="Add bot"
+              aria-label="Build bot"
             >
-              + Add
+              + Build
             </button>
           </div>
+
+          {showBotBuilder && <BotBuilder onClose={() => setShowBotBuilder(false)} />}
 
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {bots.map((bot) => (
@@ -135,6 +148,92 @@ export function HUD() {
         className="hidden"
         aria-label="Add bot (test)"
       />
+    </div>
+  );
+}
+
+function BotBuilder({ onClose }: { onClose: () => void }) {
+  const resources = useGameStore((s) => s.resources);
+  const bots = useGameStore((s) => s.bots);
+  const techTree = useGameStore((s) => s.techTree);
+  const inventory = useGameStore((s) => s.inventory);
+  const consumeBotCost = useGameStore((s) => s.consumeBotCost);
+
+  const botTypes = Object.keys(BOT_CONSTRUCTION_COSTS) as BotType[];
+
+  const handleBuild = (botType: BotType) => {
+    const success = consumeBotCost(botType);
+    if (success) {
+      const world = getWorldInstance();
+      if (world) {
+        createBot(world, { type: botType, position: { x: 0, y: 0.5, z: 0 } });
+      }
+      onClose();
+    }
+  };
+
+  return (
+    <div data-testid="bot-builder" className="mb-3 bg-gray-800/90 rounded-lg p-3 border border-gray-600">
+      <div className="text-xs font-semibold text-gray-300 mb-2">Build Bot</div>
+      <div className="space-y-2">
+        {botTypes.map((botType) => {
+          const cost = BOT_CONSTRUCTION_COSTS[botType];
+          const techNode = techTree.nodes.find((n) => n.id === cost.techRequired);
+          const techUnlocked = techNode?.unlocked ?? false;
+          const atCap = bots.length >= 10;
+
+          const hasResources = Object.entries(cost.resources).every(
+            ([resource, amount]) =>
+              (resources[resource as keyof typeof resources] || 0) >= amount
+          );
+
+          const hasComponents = cost.components.every((comp) =>
+            inventory.some((item) => item.type === comp)
+          );
+
+          const canBuild = techUnlocked && hasResources && hasComponents && !atCap;
+
+          return (
+            <div key={botType} className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-white">{BOT_TYPE_LABELS[botType]}</span>
+                <button
+                  data-testid={`build-${botType}`}
+                  onClick={() => handleBuild(botType)}
+                  disabled={!canBuild}
+                  className="bg-green-600 hover:bg-green-700 text-white px-2 py-0.5 rounded text-xs disabled:bg-gray-600 disabled:cursor-not-allowed"
+                >
+                  Build
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1 text-[10px]">
+                {Object.entries(cost.resources).map(([resource, amount]) => {
+                  const have = resources[resource as keyof typeof resources] || 0;
+                  const sufficient = have >= amount;
+                  return (
+                    <span key={resource} className={sufficient ? 'text-gray-400' : 'text-red-400'}>
+                      {amount} {resource}
+                    </span>
+                  );
+                })}
+                {cost.components.map((comp) => {
+                  const has = inventory.some((item) => item.type === comp);
+                  return (
+                    <span key={comp} className={has ? 'text-green-400' : 'text-red-400'}>
+                      1 {comp}
+                    </span>
+                  );
+                })}
+              </div>
+              {!techUnlocked && (
+                <div className="text-[10px] text-yellow-400">
+                  Requires: {techNode?.name || cost.techRequired}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 interface ResourceProps {
-  type: 'wood' | 'stone' | 'iron';
+  type: 'wood' | 'stone' | 'iron' | 'crystals';
   position: [number, number, number];
 }
 
@@ -13,6 +13,7 @@ const RESOURCE_COLORS = {
   wood: { trunk: '#8B4513', leaves: '#2D5A27' },
   stone: { primary: '#808080', secondary: '#606060' },
   iron: { primary: '#B8B8B8', secondary: '#D0D0D0' },
+  crystals: { primary: '#9B59B6', secondary: '#E8DAEF' },
 };
 
 export function Resource({ type, position }: ResourceProps) {
@@ -112,6 +113,58 @@ export function Resource({ type, position }: ResourceProps) {
               color={RESOURCE_COLORS.iron.secondary}
               transparent
               opacity={0.1}
+            />
+          </mesh>
+        </>
+      )}
+
+      {type === 'crystals' && (
+        <>
+          {/* Crystal cluster - 3 translucent octahedra */}
+          <mesh position={[0, 0.6, 0]} castShadow rotation={[0, Math.PI / 5, 0.1]}>
+            <octahedronGeometry args={[0.5, 0]} />
+            <meshStandardMaterial
+              color={RESOURCE_COLORS.crystals.primary}
+              roughness={0.1}
+              metalness={0.3}
+              emissive={RESOURCE_COLORS.crystals.primary}
+              emissiveIntensity={0.4}
+              transparent
+              opacity={0.85}
+            />
+          </mesh>
+          <mesh position={[0.35, 0.45, 0.25]} castShadow rotation={[Math.PI / 6, 0, Math.PI / 8]}>
+            <octahedronGeometry args={[0.35, 0]} />
+            <meshStandardMaterial
+              color={RESOURCE_COLORS.crystals.secondary}
+              roughness={0.1}
+              metalness={0.3}
+              emissive={RESOURCE_COLORS.crystals.primary}
+              emissiveIntensity={0.3}
+              transparent
+              opacity={0.8}
+            />
+          </mesh>
+          <mesh position={[-0.3, 0.4, -0.2]} castShadow rotation={[0, Math.PI / 3, -0.15]}>
+            <octahedronGeometry args={[0.4, 0]} />
+            <meshStandardMaterial
+              color={RESOURCE_COLORS.crystals.primary}
+              roughness={0.1}
+              metalness={0.3}
+              emissive={RESOURCE_COLORS.crystals.secondary}
+              emissiveIntensity={0.3}
+              transparent
+              opacity={0.8}
+            />
+          </mesh>
+
+          {/* Purple glow sphere */}
+          <mesh ref={glowRef} position={[0, 0.5, 0]}>
+            <sphereGeometry args={[0.9, 16, 16]} />
+            <meshBasicMaterial
+              color={RESOURCE_COLORS.crystals.primary}
+              transparent
+              opacity={0.12}
             />
           </mesh>
         </>

@@ -17,14 +17,27 @@ import { createBot } from '@/ecs/entities/bot';
 import { registerResourceNode } from '@/ecs/systems/resources';
 import { setWorldInstance, clearWorldInstance } from '@/ecs/world-instance';
 
-const RESOURCE_NODES: { id: string; type: 'wood' | 'stone' | 'iron'; position: [number, number, number] }[] = [
-  { id: 'wood-1', type: 'wood', position: [-10, 0, -10] },
-  { id: 'wood-2', type: 'wood', position: [-8, 0, -15] },
-  { id: 'wood-3', type: 'wood', position: [-12, 0, -8] },
-  { id: 'stone-1', type: 'stone', position: [10, 0, -10] },
+const RESOURCE_NODES: { id: string; type: 'wood' | 'stone' | 'iron' | 'crystals'; position: [number, number, number] }[] = [
+  // Wood (5) — SW quadrant, close to base
+  { id: 'wood-1', type: 'wood', position: [-8, 0, -8] },
+  { id: 'wood-2', type: 'wood', position: [-10, 0, -12] },
+  { id: 'wood-3', type: 'wood', position: [-6, 0, -14] },
+  { id: 'wood-4', type: 'wood', position: [-13, 0, -10] },
+  { id: 'wood-5', type: 'wood', position: [-15, 0, -18] },
+  // Stone (4) — SE quadrant, mid distance
+  { id: 'stone-1', type: 'stone', position: [8, 0, -10] },
   { id: 'stone-2', type: 'stone', position: [12, 0, -8] },
-  { id: 'iron-1', type: 'iron', position: [0, 0, -20] },
-  { id: 'iron-2', type: 'iron', position: [2, 0, -22] },
+  { id: 'stone-3', type: 'stone', position: [10, 0, -14] },
+  { id: 'stone-4', type: 'stone', position: [14, 0, -18] },
+  // Iron (4) — North, farther out
+  { id: 'iron-1', type: 'iron', position: [-4, 0, -22] },
+  { id: 'iron-2', type: 'iron', position: [2, 0, -25] },
+  { id: 'iron-3', type: 'iron', position: [-8, 0, -28] },
+  { id: 'iron-4', type: 'iron', position: [4, 0, -30] },
+  // Crystals (3) — Far corners, longest travel
+  { id: 'crystal-1', type: 'crystals', position: [20, 0, -25] },
+  { id: 'crystal-2', type: 'crystals', position: [-22, 0, -30] },
+  { id: 'crystal-3', type: 'crystals', position: [0, 0, -35] },
 ];
 
 function LoadingScreen() {

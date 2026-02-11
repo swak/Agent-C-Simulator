@@ -134,6 +134,9 @@ export function TechTree({ isOpen, onClose }: TechTreeProps) {
                       <div className="font-semibold text-white mb-2">
                         {node.name}
                       </div>
+                      {node.description && (
+                        <div className="text-xs text-cyan-400 mb-1">{node.description}</div>
+                      )}
                       {!node.unlocked && (
                         <div className="text-xs text-gray-400">
                           {Object.entries(node.cost)
@@ -165,6 +168,11 @@ export function TechTree({ isOpen, onClose }: TechTreeProps) {
               <h3 className="text-xl font-bold text-white mb-2">
                 {selectedTechNode.name}
               </h3>
+
+              {/* Description */}
+              {selectedTechNode.description && (
+                <div className="mb-4 text-sm text-cyan-400">{selectedTechNode.description}</div>
+              )}
 
               {/* Prerequisites */}
               {selectedTechNode.prerequisites.length > 0 && (

@@ -22,11 +22,13 @@ describe('Game State Store', () => {
       bots: [],
       techTree: {
         nodes: [
-          { id: 'basic-bot', name: 'Basic Bot', unlocked: true, cost: {}, prerequisites: [] },
-          { id: 'advanced-miner', name: 'Advanced Miner Bot', unlocked: false, cost: { wood: 50, stone: 30 }, prerequisites: ['basic-bot'] },
-          { id: 'basic-hauler', name: 'Basic Hauler', unlocked: false, cost: { wood: 40, stone: 20 }, prerequisites: ['basic-bot'] },
-          { id: 'expert-miner', name: 'Expert Miner', unlocked: false, cost: { wood: 100, stone: 80, iron: 20 }, prerequisites: ['advanced-miner'] },
-          { id: 'advanced-crafting', name: 'Advanced Crafting', unlocked: false, cost: { wood: 60, stone: 40 }, prerequisites: ['basic-bot'] },
+          { id: 'basic-bot', name: 'Basic Bot', unlocked: true, cost: {}, prerequisites: [], description: 'Build miners' },
+          { id: 'advanced-miner', name: 'Advanced Miner Bot', unlocked: false, cost: { wood: 50, stone: 30 }, prerequisites: ['basic-bot'], description: '+25% miner gather speed' },
+          { id: 'basic-hauler', name: 'Basic Hauler', unlocked: false, cost: { wood: 40, stone: 20 }, prerequisites: ['basic-bot'], description: 'Build haulers' },
+          { id: 'expert-miner', name: 'Expert Miner', unlocked: false, cost: { wood: 100, stone: 80, iron: 20 }, prerequisites: ['advanced-miner'], description: '+5 miner capacity' },
+          { id: 'advanced-crafting', name: 'Advanced Crafting', unlocked: false, cost: { wood: 60, stone: 40 }, prerequisites: ['basic-bot'], description: 'Build crafters' },
+          { id: 'scout-tech', name: 'Scout Tech', unlocked: false, cost: { wood: 30, stone: 20, iron: 10 }, prerequisites: ['basic-bot'], description: 'Build scouts' },
+          { id: 'crystal-processing', name: 'Crystal Processing', unlocked: false, cost: { wood: 80, stone: 50, iron: 30 }, prerequisites: ['scout-tech'], description: '2x crystal gather rate' },
         ],
       },
       inventory: [],

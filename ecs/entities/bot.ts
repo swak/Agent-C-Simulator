@@ -27,7 +27,8 @@ import {
   Upgrades,
   getNextEntityId,
 } from '@/ecs/world';
-import { UPGRADE_EFFECTS, MAX_UPGRADES_PER_BOT } from '@/utils/constants';
+import { UPGRADE_EFFECTS, MAX_UPGRADES_PER_BOT, TECH_EFFECTS } from '@/utils/constants';
+import { useGameStore } from '@/stores/game-state';
 
 export interface BotConfig {
   type: BotType;
@@ -60,8 +61,20 @@ export function createBot(world: GameWorld, config: BotConfig): BotEntity | null
 
   const position: Position = config.position || { x: 0, y: 0, z: 0 };
   const botType = config.type;
-  const stats = BOT_STATS[botType];
+  const stats = { ...BOT_STATS[botType] };
   const entityId = getNextEntityId(world);
+
+  // Apply tech tree stat bonuses
+  try {
+    const techNodes = useGameStore.getState().techTree.nodes;
+    if (botType === 'miner') {
+      if (techNodes.find((n) => n.id === 'expert-miner')?.unlocked) {
+        stats.capacity += TECH_EFFECTS['expert-miner'].capacityBonus!;
+      }
+    }
+  } catch {
+    // Store may not be initialized in tests
+  }
 
   const entityData: EntityComponents = {
     id: entityId,

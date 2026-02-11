@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { BOT_CONSTRUCTION_COSTS } from '@/utils/constants';
 
 export interface Bot {
   id: string;
@@ -35,6 +36,7 @@ export interface TechNode {
   unlocked: boolean;
   cost: { wood?: number; stone?: number; iron?: number };
   prerequisites: string[];
+  description?: string;
 }
 
 export interface CraftingQueueItem {
@@ -101,6 +103,8 @@ interface GameState {
   getUnlockedNodeCount: () => number;
 
   removeInventoryItem: (itemId: string) => void;
+  consumeInventoryItem: (itemType: string) => boolean;
+  consumeBotCost: (botType: string) => boolean;
 
   canCraftRecipe: (recipeId: string) => boolean;
   craftItem: (recipeId: string) => string | null;
@@ -130,11 +134,13 @@ const recipes: Record<string, { cost: Record<string, number>; duration: number; 
 
 // Tech tree data
 const initialTechTree: TechNode[] = [
-  { id: 'basic-bot', name: 'Basic Bot', unlocked: true, cost: {}, prerequisites: [] },
-  { id: 'advanced-miner', name: 'Advanced Miner Bot', unlocked: false, cost: { wood: 50, stone: 30 }, prerequisites: ['basic-bot'] },
-  { id: 'basic-hauler', name: 'Basic Hauler', unlocked: false, cost: { wood: 40, stone: 20 }, prerequisites: ['basic-bot'] },
-  { id: 'expert-miner', name: 'Expert Miner', unlocked: false, cost: { wood: 100, stone: 80, iron: 20 }, prerequisites: ['advanced-miner'] },
-  { id: 'advanced-crafting', name: 'Advanced Crafting', unlocked: false, cost: { wood: 60, stone: 40 }, prerequisites: ['basic-bot'] },
+  { id: 'basic-bot', name: 'Basic Bot', unlocked: true, cost: {}, prerequisites: [], description: 'Build miners' },
+  { id: 'advanced-miner', name: 'Advanced Miner Bot', unlocked: false, cost: { wood: 50, stone: 30 }, prerequisites: ['basic-bot'], description: '+25% miner gather speed' },
+  { id: 'basic-hauler', name: 'Basic Hauler', unlocked: false, cost: { wood: 40, stone: 20 }, prerequisites: ['basic-bot'], description: 'Build haulers' },
+  { id: 'expert-miner', name: 'Expert Miner', unlocked: false, cost: { wood: 100, stone: 80, iron: 20 }, prerequisites: ['advanced-miner'], description: '+5 miner capacity' },
+  { id: 'advanced-crafting', name: 'Advanced Crafting', unlocked: false, cost: { wood: 60, stone: 40 }, prerequisites: ['basic-bot'], description: 'Build crafters' },
+  { id: 'scout-tech', name: 'Scout Tech', unlocked: false, cost: { wood: 30, stone: 20, iron: 10 }, prerequisites: ['basic-bot'], description: 'Build scouts' },
+  { id: 'crystal-processing', name: 'Crystal Processing', unlocked: false, cost: { wood: 80, stone: 50, iron: 30 }, prerequisites: ['scout-tech'], description: '2x crystal gather rate' },
 ];
 
 let autoSaveInterval: NodeJS.Timeout | null = null;
@@ -344,6 +350,55 @@ export const useGameStore = create<GameState>()(
         }));
       },
 
+      consumeInventoryItem: (itemType) => {
+        const state = get();
+        const index = state.inventory.findIndex((item) => item.type === itemType);
+        if (index === -1) return false;
+
+        set((state) => ({
+          inventory: state.inventory.filter((_, i) => i !== index),
+        }));
+        return true;
+      },
+
+      consumeBotCost: (botType) => {
+        const cost = BOT_CONSTRUCTION_COSTS[botType];
+        if (!cost) return false;
+
+        const state = get();
+
+        // Check tech requirement
+        const techNode = state.techTree.nodes.find((n) => n.id === cost.techRequired);
+        if (!techNode || !techNode.unlocked) return false;
+
+        // Check bot cap
+        if (state.bots.length >= 10) return false;
+
+        // Check resources
+        for (const [resource, amount] of Object.entries(cost.resources)) {
+          if ((state.resources[resource as keyof typeof state.resources] || 0) < amount) {
+            return false;
+          }
+        }
+
+        // Check components
+        for (const component of cost.components) {
+          if (!state.inventory.some((item) => item.type === component)) {
+            return false;
+          }
+        }
+
+        // Consume resources
+        get().consumeResources(cost.resources);
+
+        // Consume components
+        for (const component of cost.components) {
+          get().consumeInventoryItem(component);
+        }
+
+        return true;
+      },
+
       // Crafting actions
       canCraftRecipe: (recipeId) => {
         const recipe = recipes[recipeId];
@@ -459,6 +514,17 @@ export const useGameStore = create<GameState>()(
           if (!saved) return false;
 
           const saveData = JSON.parse(saved);
+
+          // Migrate tech tree: merge missing nodes from initialTechTree
+          if (saveData.techTree?.nodes) {
+            const savedNodeIds = new Set(saveData.techTree.nodes.map((n: TechNode) => n.id));
+            for (const node of initialTechTree) {
+              if (!savedNodeIds.has(node.id)) {
+                saveData.techTree.nodes.push({ ...node, unlocked: false });
+              }
+            }
+          }
+
           set(saveData);
           return true;
         } catch (error) {

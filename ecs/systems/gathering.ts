@@ -8,6 +8,7 @@ import { EntityComponents, GameWorld } from '@/ecs/world';
 import { BotEntity } from '@/ecs/entities/bot';
 import { queueAudioEvent } from './audio';
 import { releaseResourceNode } from './resources';
+import { useGameStore } from '@/stores/game-state';
 
 export function updateGathering(bot: BotEntity, deltaMs: number, world?: GameWorld): void {
   const aiState = bot.aiState;
@@ -23,7 +24,24 @@ export function updateGathering(bot: BotEntity, deltaMs: number, world?: GameWor
   const gatheringModifier = stats.gatheringModifier;
 
   // Apply speed modifier to progress
-  const progressIncrement = (deltaMs / duration) * 100 * gatheringModifier;
+  let progressIncrement = (deltaMs / duration) * 100 * gatheringModifier;
+
+  // Apply tech tree multipliers
+  try {
+    const techNodes = useGameStore.getState().techTree.nodes;
+    const resourceType = task.resourceType || 'wood';
+
+    if (resourceType === 'crystals' && techNodes.find((n) => n.id === 'crystal-processing')?.unlocked) {
+      progressIncrement *= 2;
+    }
+
+    if (bot.botType === 'miner' && techNodes.find((n) => n.id === 'advanced-miner')?.unlocked) {
+      progressIncrement *= 1.25;
+    }
+  } catch {
+    // Store may not be initialized in tests
+  }
+
   const newProgress = (task.progress || 0) + progressIncrement;
 
   if (newProgress >= 100) {
